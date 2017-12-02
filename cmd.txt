@@ -1,0 +1,225 @@
+##Create a new project, using rails new user_login_project
+
+
+$ rails new users_login_project
+
+-----------------
+
+
+##Create a new model called 'User' with the information above.
+
+
+$ rails generate model
+
+
+------------------
+
+
+##Rails will automatically create the automatic increment of the primary field called ID as well as created_at and updated_at time stamps.
+
+generate model User first_name:string last_name:string password:string email_address:string age:integer
+
+rake db:migrate
+
+
+
+
+
+-------------------
+
+## Create a few records in the users table using the Rails console.
+
+rails console
+
+u =User.new(first_name: "neethu",last_name:"reddy",password:"password",email_address: "neethu@dojo.com", age:22)
+ => #<User id: nil, first_name: "neethu", last_name: "reddy", password: "password", email_address: "neethu@dojo.com", age: 22, created_at: nil, updated_at: nil> 
+
+
+  user.save
+
+
+  User.create(first_name: "barka", last_name: "patel", email_address: "barka@dojo.com", age: 25)
+
+
+  User.create(first_name: "yuki", last_name: "hurie", email_address: "yuki@dojo.com", age: 26)
+
+---------------------
+## Now add validations to the model so that...
+## it requires the presence of the all four fields.
+## it requires the age to be numeric.
+## it requires the first_name and the last_name to be at least 2 characters each.
+## it requires the age to be at least 10 and below 150 
+
+
+
+class User < ActiveRecord::Base
+    EMAIL_REGEX = /\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]+)\z/i
+    validates :first_name, :last_name, presence: true, length: { in: 2..20 }
+    validates :age,presence: true, numericality: { greater_than_or_equal_to: 10, less_than: 150 }
+    validates :email, presence: true, uniqueness: { case_sensitive: false }, format: { with: EMAIL_REGEX }
+
+end
+
+---------------------
+
+## Get familiar with .save, .valid?
+
+u=User.new
+u.save
+u.valid?
+u.errors
+u.errors.full_messages
+
+-------------------------------------
+## See if it allows you to insert some records when the fields are not meeting the validation rules we set (e.g. try to create a record where age is 5 or above 150, or where the first name is just one character, etc).
+## Make sure your console returns appropriate error messages when you try to save something that's not meeting the validation rules.
+
+ User.create(first_name: "C", last_name: "D", email_address: "dojo.com", age: 9).errors
+   (0.2ms)  begin transaction
+  User Exists (1.5ms)  SELECT  1 AS one FROM "users" WHERE LOWER("users"."email_address") = LOWER('dojo.com') LIMIT 1
+   (0.1ms)  rollback transaction
+ => #<ActiveModel::Errors:0x0000000353d830 @base=#<User id: nil, first_name: "C", last_name: "D", password: nil, email_address: "dojo.com", age: 9, created_at: nil, updated_at: nil>, @messages={:first_name=>["is too short (minimum is 2 characters)"], :last_name=>["is too short (minimum is 2 characters)"], :age=>["must be greater than or equal to 10"], :email_address=>["is invalid"]}> 
+
+-------------------
+
+## Know how to retrieve all users.
+User.all
+
+
+
+  User Load (2.1ms)  SELECT "users".* FROM "users"
++----+------------+-----------+----------+-----------------+-----+-------------------------+-------------------------+
+| id | first_name | last_name | password | email_address   | age | created_at              | updated_at              |
++----+------------+-----------+----------+-----------------+-----+-------------------------+-------------------------+
+| 1  | neethu     | reddy     | password | neethu@dojo.com | 22  | 2017-12-01 23:22:16 UTC | 2017-12-01 23:22:16 UTC |
+| 2  | barka      | patel     |          | barka@dojo.com  | 25  | 2017-12-01 23:23:21 UTC | 2017-12-01 23:23:21 UTC |
+| 3  | yuki       | hurie     |          | yuki@dojo.com   | 26  | 2017-12-01 23:24:52 UTC | 2017-12-01 23:24:52 UTC |
+| 4  |            |           |          |                 |     | 2017-12-01 23:46:26 UTC | 2017-12-01 23:46:26 UTC |
+| 5  |            |           |          |                 |     | 2017-12-01 23:55:20 UTC | 2017-12-01 23:55:20 UTC |
++----+------------+-----------+----------+-----------------+-----+-------------------------+-------------------------+
+5 rows in set
+
+--------------------
+
+## Know how to get the first user.
+
+User.first
+
+
+
+User Load (2.0ms)  SELECT  "users".* FROM "users"  ORDER BY "users"."id" ASC LIMIT 1
++----+------------+-----------+----------+-----------------+-----+-------------------------+-------------------------+
+| id | first_name | last_name | password | email_address   | age | created_at              | updated_at              |
++----+------------+-----------+----------+-----------------+-----+-------------------------+-------------------------+
+| 1  | neethu     | reddy     | password | neethu@dojo.com | 22  | 2017-12-01 23:22:16 UTC | 2017-12-01 23:22:16 UTC |
++----+------------+-----------+----------+-----------------+-----+-------------------------+-------------------------+
+1 row in set
+
+
+
+
+
+--------------------
+
+
+## Know how to get the last user.
+
+
+User.last
+
+
+ User Load (3.0ms)  SELECT  "users".* FROM "users"  ORDER BY "users"."id" DESC LIMIT 1
++----+------------+-----------+----------+---------------+-----+-------------------------+-------------------------+
+| id | first_name | last_name | password | email_address | age | created_at              | updated_at              |
++----+------------+-----------+----------+---------------+-----+-------------------------+-------------------------+
+| 6  | Cee        | Dee       |          | dojo@dojo.com | 19  | 2017-12-02 00:14:32 UTC | 2017-12-02 00:14:32 UTC |
++----+------------+-----------+----------+---------------+-----+-------------------------+-------------------------+
+1 row in set
+
+
+
+--------------------
+
+
+
+## Know how to get the users sorted by their first name (order by first_name DESC).
+
+User.order(first_name: :desc)
+  User Load (2.1ms)  SELECT "users".* FROM "users"  ORDER BY "users"."first_name" DESC
++----+------------+-----------+----------+-----------------+-----+-------------------------+-------------------------+
+| id | first_name | last_name | password | email_address   | age | created_at              | updated_at              |
++----+------------+-----------+----------+-----------------+-----+-------------------------+-------------------------+
+| 3  | yuki       | hurie     |          | yuki@dojo.com   | 26  | 2017-12-01 23:24:52 UTC | 2017-12-01 23:24:52 UTC |
+| 1  | neethu     | reddy     | password | neethu@dojo.com | 22  | 2017-12-01 23:22:16 UTC | 2017-12-01 23:22:16 UTC |
+| 2  | barka      | patel     |          | barka@dojo.com  | 25  | 2017-12-01 23:23:21 UTC | 2017-12-01 23:23:21 UTC |
+| 6  | Cee        | Dee       |          | dojo@dojo.com   | 19  | 2017-12-02 00:14:32 UTC | 2017-12-02 00:14:32 UTC |
++----+------------+-----------+----------+-----------------+-----+-------------------------+-------------------------+
+4 rows in set
+
+
+
+
+---------------------
+
+
+## Get the record of the user whose id is 3 and UPDATE the person's last_name to something else. Know how to do this directly in the console using .find and .save.
+
+user = User.find(3)
+
+
+
+  User Load (1.9ms)  SELECT  "users".* FROM "users" WHERE "users"."id" = ? LIMIT 1  [["id", 3]]
++----+------------+-----------+----------+---------------+-----+-------------------------+-------------------------+
+| id | first_name | last_name | password | email_address | age | created_at              | updated_at              |
++----+------------+-----------+----------+---------------+-----+-------------------------+-------------------------+
+| 3  | yuki       | hurie     |          | yuki@dojo.com | 26  | 2017-12-01 23:24:52 UTC | 2017-12-01 23:24:52 UTC |
++----+------------+-----------+----------+---------------+-----+-------------------------+-------------------------+
+1 row in set
+
+-----------------------
+
+## update
+
+
+user = User.find(3)
+
+user.last_name = "saa"
+
+user.save
+
+
+---------------------
+
+
+## Know how to delete a record of a user whose id is 6 (use something like User.find(2).destroy...).
+
+
+User.find(6).destroy
+  User Load (1.7ms)  SELECT  "users".* FROM "users" WHERE "users"."id" = ? LIMIT 1  [["id", 6]]
+   (0.1ms)  begin transaction
+  SQL (2.9ms)  DELETE FROM "users" WHERE "users"."id" = ?  [["id", 6]]
+   (420.7ms)  commit transaction
++----+------------+-----------+----------+---------------+-----+-------------------------+-------------------------+
+| id | first_name | last_name | password | email_address | age | created_at              | updated_at              |
++----+------------+-----------+----------+---------------+-----+-------------------------+-------------------------+
+| 6  | Cee        | Dee       |          | dojo@dojo.com | 19  | 2017-12-02 00:14:32 UTC | 2017-12-02 00:14:32 UTC |
++----+------------+-----------+----------+---------------+-----+-------------------------+-------------------------+
+1 row in set
+
+
+
+ User.all
+
+ 
+  User Load (2.1ms)  SELECT "users".* FROM "users"
++----+------------+-----------+----------+-----------------+-----+-------------------------+-------------------------+
+| id | first_name | last_name | password | email_address   | age | created_at              | updated_at              |
++----+------------+-----------+----------+-----------------+-----+-------------------------+-------------------------+
+| 1  | neethu     | reddy     | password | neethu@dojo.com | 22  | 2017-12-01 23:22:16 UTC | 2017-12-01 23:22:16 UTC |
+| 2  | barka      | patel     |          | barka@dojo.com  | 25  | 2017-12-01 23:23:21 UTC | 2017-12-01 23:23:21 UTC |
+| 3  | yuki       | saa       |          | yuki@dojo.com   | 26  | 2017-12-01 23:24:52 UTC | 2017-12-02 00:22:31 UTC |
+| 7  | Coding     | Dojo      |          | coding@dojo.com | 30  | 2017-12-02 00:24:35 UTC | 2017-12-02 00:24:35 UTC |
++----+------------+-----------+----------+-----------------+-----+-------------------------+-------------------------+
+4 rows in set
+
+------------------------
